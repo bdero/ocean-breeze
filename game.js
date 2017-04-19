@@ -28,6 +28,54 @@ window.onload = function() {
             sway: Math.random()*30 + 10
         })
     }
+    let BoatClass = {
+        x: 0, y: 0, rotation: 0,
+        create: function(x, y) {
+            return Object.create(BoatClass, {x: {value: x}, y: {value: y}})
+        },
+        render: function() {
+            context.save()
+            // Initial transform
+            context.scale(scaleFactor, scaleFactor)
+            context.translate(this.x, this.y)
+            context.rotate(this.rotation)
+
+            // Sails
+            context.fillStyle = 'orange'
+            context.beginPath()
+            context.moveTo(37, -280)
+            context.lineTo(130, 0)
+            context.lineTo(60, 0)
+            context.closePath()
+            context.fill()
+            context.beginPath()
+            context.moveTo(37, -300)
+            context.lineTo(17, -30)
+            context.lineTo(-150, -30)
+            context.closePath()
+            context.fill()
+            // Sail poles
+            context.fillStyle = 'white'
+            context.fillRect(30, -300, 14, 300)
+            context.fillRect(-150, -33, 190, 8)
+
+            // Base hull
+            context.save()
+            context.fillStyle = 'maroon'
+            context.scale(1.3, 1)
+            context.beginPath()
+            context.arc(0, 0, 100, 0, Math.PI)
+            context.closePath()
+            context.fill()
+            context.restore()
+            // Base cap
+            context.fillStyle = 'brown'
+            context.fillRect(-140, -10, 280, 20)
+
+            context.restore()
+        }
+    }
+    let boat = BoatClass.create(mX, mY, 0)
     let loop = () => {
         timeElapsed = (Date.now() - initialTime)/1000
 
@@ -49,6 +97,8 @@ window.onload = function() {
             context.closePath()
 
             context.fill()
+
+            boat.render()
         }
         requestAnimationFrame(loop)
     }
