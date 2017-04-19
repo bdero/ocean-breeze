@@ -70,7 +70,10 @@ window.onload = function() {
     let BoatClass = {
         x: 0, y: 0, rotation: 0, closeness: 0,
         create: function(x, closeness) {
-            return Object.create(BoatClass, {x: {value: x}, closeness: {value: closeness}})
+            return Object.create(BoatClass, {
+                x: {value: x, writable: true},
+                closeness: {value: closeness, writable: true}
+            })
         },
         render: function() {
             context.save()
@@ -79,6 +82,10 @@ window.onload = function() {
             let noiseY = simplex.noise(500, timeElapsed*0.75)*16
             let noiseRotation = simplex.noise(600, timeElapsed*0.40)/8
 
+            if (actions.moveUp.active)
+                this.closeness = Math.max(0, this.closeness - timeDelta/3)
+            if (actions.moveDown.active)
+                this.closeness = Math.min(0.98, this.closeness + timeDelta/3)
             this.y = -0.5 + 0.3 + 0.7*this.closeness
 
             context.scale(scaleFactor, scaleFactor)
