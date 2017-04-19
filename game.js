@@ -1,4 +1,5 @@
 window.onload = function() {
+    // Canvas setup
     let element = document.getElementById('game')
     let context = element.getContext('2d', {alpha: false})
     let mX, mY, scaleFactor
@@ -16,29 +17,41 @@ window.onload = function() {
     window.addEventListener('resize', resizeCallback)
     resizeCallback()
 
+    let simplex = new SimplexNoise()
+
+    // Water setup
     let mountains = []
     let totalMountains = 2000
     for (let i = 0; i < totalMountains; i++) {
         mountains.push({
             closeness: i,
-            x: Math.random(),
-            y: 0.3 + (Math.random()/5) + 0.7*i/totalMountains,
+            x: -0.5 + Math.random(),
+            y: -0.5 + 0.3 + (Math.random()/5) + 0.7*i/totalMountains,
             initialRotation: Math.random()*Math.PI*2,
             rotationSpeed: (Math.random()*1 + 1)*Math.sign(Math.random() - 0.5),
             sway: Math.random()*30 + 10
         })
     }
+
+    // Boat setup
     let BoatClass = {
-        x: 0, y: 0, rotation: 0,
-        create: function(x, y) {
-            return Object.create(BoatClass, {x: {value: x}, y: {value: y}})
+        x: 0, y: 0, rotation: 0, closeness: 0,
+        create: function(x, closeness) {
+            return Object.create(BoatClass, {x: {value: x}, closeness: {value: closeness}})
         },
         render: function() {
             context.save()
             // Initial transform
+            let noiseX = simplex.noise(400, timeElapsed/2)*22
+            let noiseY = simplex.noise(500, timeElapsed*0.75)*16
+            let noiseRotation = simplex.noise(600, timeElapsed*0.40)/8
+
+            this.y = -0.5 + 0.3 + 0.7*this.closeness
+
             context.scale(scaleFactor, scaleFactor)
-            context.translate(this.x, this.y)
-            context.rotate(this.rotation)
+            context.translate(element.width*this.x/scaleFactor + noiseX, element.height*this.y/scaleFactor + noiseY)
+            context.rotate(this.rotation + noiseRotation)
+            context.translate(-15, -90)
 
             // Sails
             context.fillStyle = 'orange'
@@ -58,7 +71,6 @@ window.onload = function() {
             context.fillStyle = 'white'
             context.fillRect(30, -300, 14, 300)
             context.fillRect(-150, -33, 190, 8)
-
             // Base hull
             context.save()
             context.fillStyle = 'maroon'
@@ -75,10 +87,14 @@ window.onload = function() {
             context.restore()
         }
     }
-    let boat = BoatClass.create(mX, mY, 0)
+    let boat = BoatClass.create(0, 0.5)
     let loop = () => {
         timeElapsed = (Date.now() - initialTime)/1000
+        context.save()
+        context.translate(mX, mY)
 
+        let boatDrawn = false
+        // Draw water
         for (let mountain of mountains) {
             mountain.rotation += mountain.rotationSpeed
             let distance = (mountain.closeness*0.10 + 10000/totalMountains + 400)*scaleFactor
@@ -89,7 +105,12 @@ window.onload = function() {
             let red = Math.round(255 - 255.0/(mountain.closeness/(totalMountains/4) + 1))
             let green = Math.round(255 - 105/(mountain.closeness/(totalMountains/4) + 1))
 
-            context.fillStyle = `rgb(${red}, ${green}, 0)`
+            if (!boatDrawn && mountain.closeness > boat.closeness*totalMountains) {
+                boat.render()
+                boatDrawn = true
+            }
+
+            context.fillStyle = `rgba(${red}, ${green}, 0, 0.9)`
             context.beginPath()
             context.moveTo(x - distance, y + distance*0.75)
             context.lineTo(x, y - distance*0.25)
@@ -97,9 +118,9 @@ window.onload = function() {
             context.closePath()
 
             context.fill()
-
-            boat.render()
         }
+
+        context.restore()
         requestAnimationFrame(loop)
     }
     loop()
