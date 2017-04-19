@@ -5,6 +5,7 @@ window.onload = function() {
     let mX, mY, scaleFactor
     let initialTime = Date.now()
     let timeElapsed = 0
+    let timeDelta = 0
 
     let resizeCallback = () => {
         element.width = window.innerWidth
@@ -16,6 +17,38 @@ window.onload = function() {
     }
     window.addEventListener('resize', resizeCallback)
     resizeCallback()
+
+    let actions = {
+        moveUp: {
+            active: false,
+            keyCodes: ['ArrowUp', 'KeyW', 'KeyK', 'Numpad8']
+        },
+        moveDown: {
+            active: false,
+            keyCodes: ['ArrowDown', 'KeyS', 'KeyJ', 'Numpad5', 'Numpad2']
+        },
+        moveLeft: {
+            active: false,
+            keyCodes: ['ArrowLeft', 'KeyA', 'KeyH', 'Numpad4']
+        },
+        moveRight: {
+            active: false,
+            keyCodes: ['ArrowRight', 'KeyD', 'KeyL', 'Numpad6']
+        }
+    }
+    let keyCallback = (activate) => {
+        return (e) => {
+            for (let action of Object.keys(actions)) {
+                for (let keyCode of actions[action].keyCodes) {
+                    if (keyCode === e.code) {
+                        actions[action].active = activate
+                    }
+                }
+            }
+        }
+    }
+    document.addEventListener('keydown', keyCallback(true))
+    document.addEventListener('keyup', keyCallback(false))
 
     let simplex = new SimplexNoise()
 
@@ -89,7 +122,10 @@ window.onload = function() {
     }
     let boat = BoatClass.create(0, 0.5)
     let loop = () => {
+        let prevTimeElapsed = timeElapsed
         timeElapsed = (Date.now() - initialTime)/1000
+        timeDelta = timeElapsed - prevTimeElapsed
+
         context.save()
         context.translate(mX, mY)
 
