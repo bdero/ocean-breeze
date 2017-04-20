@@ -61,7 +61,8 @@ window.onload = function() {
         x: 0,
         destinationX: 0,
         destinationXHistory: [0, 0, 0, 0, 0],
-        historyCursor: 0
+        historyCursor: 0,
+        zoom: 1.1
     }
 
     // Water setup
@@ -120,23 +121,26 @@ window.onload = function() {
             }
 
             this.x += this.vX*timeDelta
-            this.closeness = Math.max(0, Math.min(0.98, this.closeness + this.vY*timeDelta))
+            this.closeness = Math.max(0.02, Math.min(0.98, this.closeness + this.vY*timeDelta))
             this.y = -0.5 + 0.3 + 0.7*this.closeness
 
-            if (this.closeness === 0 || this.closeness === 0.98)
+            if (this.closeness === 0.02 || this.closeness === 0.98)
                 this.vY = 0
         },
         render: function() {
             context.save()
-            let noiseX = simplex.noise(400, timeElapsed/2)*22
+            let noiseX = simplex.noise(400, timeElapsed/4)*22
             let noiseY = simplex.noise(500, timeElapsed*0.75)*16
             let noiseRotation = simplex.noise(600, timeElapsed*0.40)/8
 
             // Initial transform
             context.scale(scaleFactor, scaleFactor)
-            context.translate(element.width*this.x/scaleFactor + noiseX, element.height*this.y/scaleFactor + noiseY)
-            context.rotate(this.rotation + noiseRotation)
-            context.translate(-15, -75)
+            context.translate(
+                element.width*this.x/scaleFactor + noiseX,
+                element.height*(this.y - Math.abs(this.vX)/30)/scaleFactor + noiseY
+            )
+            context.rotate(this.rotation + this.vX/3 + noiseRotation)
+            context.translate(-15, -90)
 
             // Sails
             context.fillStyle = 'orange'
@@ -181,38 +185,51 @@ window.onload = function() {
         timeDelta = timeElapsed - prevTimeElapsed
 
         context.save()
+        context.scale(camera.zoom, camera.zoom)
 
+        // Camera calculations
         camera.historyCursor = (camera.historyCursor + 1)%camera.destinationXHistory.length
         camera.destinationXHistory[camera.historyCursor] = boat.x + boat.vX*1.3
         camera.destinationX = camera.destinationXHistory.reduce((x, y) => x + y)/camera.destinationXHistory.length
         camera.x += asymptote(camera.destinationX - camera.x, 0.8, timeDelta)
+        camera.y = boat.y
 
         boat.update()
-        context.translate(mX - camera.x*element.width, mY)
+        context.translate(
+            mX/camera.zoom - camera.x*element.width + simplex.noise(100, timeElapsed/5)*12*scaleFactor,
+            mY/camera.zoom - camera.y/5*element.height + simplex.noise(200, timeElapsed/5)*12*scaleFactor
+        )
 
+        // Render scene
         let boatDrawn = false
-        // Draw water
         for (let mountain of mountains) {
             mountain.rotation += mountain.rotationSpeed
             let distance = (mountain.closeness*0.10 + 10000/totalMountains + 400)*scaleFactor
             let rotation = mountain.initialRotation + mountain.rotationSpeed*timeElapsed
-            let x = element.width*(mountain.x - Math.floor(-camera.x + mountain.x + 0.5)) + Math.sin(rotation)*mountain.sway*scaleFactor
+            let x = (
+                element.width*(mountain.x - Math.floor(-camera.x + mountain.x + 0.5))
+                + Math.sin(rotation)*mountain.sway*scaleFactor
+            )
             let y = element.height*mountain.y + Math.cos(rotation)*mountain.sway*scaleFactor
 
-
-            let red = Math.round(255 - 255.0/(mountain.closeness/(totalMountains/4) + 1))
-            let green = Math.round(255 - 105/(mountain.closeness/(totalMountains/4) + 1))
-
-            if (!boatDrawn && mountain.closeness > boat.closeness*totalMountains) {
+            let boatCloseness = boat.closeness*totalMountains
+            if (!boatDrawn && mountain.closeness > boatCloseness) {
                 boat.render()
                 boatDrawn = true
             }
 
-            context.fillStyle = `rgba(${red}, ${green}, 0, 0.9)`
+            let red = Math.round(255 - 255.0/(mountain.closeness/(totalMountains/4) + 1))
+            let green = Math.round(255 - 105/(mountain.closeness/(totalMountains/4) + 1))
+            let alpha = Math.min(
+                1,
+                Math.abs(boatCloseness - mountain.closeness)/100 + Math.abs(boat.x - x/element.width)*3
+            )
+
+            context.fillStyle = `rgba(${red}, ${green}, 0, ${alpha})`
             context.beginPath()
-            context.moveTo(x - distance, y + distance*0.75)
+            context.moveTo(x - distance*2, y + distance*0.75)
             context.lineTo(x, y - distance*0.25)
-            context.lineTo(x + distance, y + distance*0.75)
+            context.lineTo(x + distance*2, y + distance*0.75)
             context.closePath()
 
             context.fill()
