@@ -50,7 +50,17 @@ window.onload = function() {
     document.addEventListener('keydown', keyCallback(true))
     document.addEventListener('keyup', keyCallback(false))
 
+    function asymptote(dist, divisor, dt) {
+        return (1 - 1/(dt/divisor + 1))*dist;
+    }
+
     let simplex = new SimplexNoise()
+
+    // Camera setup
+    let camera = {
+        destinationX: 0,
+        x: 0
+    }
 
     // Water setup
     let mountains = []
@@ -68,7 +78,7 @@ window.onload = function() {
 
     // Boat setup
     let BoatClass = {
-        accelRate: 0.3, frictionRate: 0.2, maxSpeed: 3,
+        accelRate: 0.3, frictionRate: 0.2, maxSpeed: 0.7,
         x: 0, y: 0, rotation: 0, closeness: 0,
         vX: 0, vY: 0,
         create: function(x, closeness) {
@@ -166,7 +176,7 @@ window.onload = function() {
         timeDelta = timeElapsed - prevTimeElapsed
 
         context.save()
-        context.translate(mX, mY)
+        context.translate(mX - camera.x*element.width, mY)
 
         let boatDrawn = false
         // Draw water
@@ -174,8 +184,9 @@ window.onload = function() {
             mountain.rotation += mountain.rotationSpeed
             let distance = (mountain.closeness*0.10 + 10000/totalMountains + 400)*scaleFactor
             let rotation = mountain.initialRotation + mountain.rotationSpeed*timeElapsed
-            let x = element.width*mountain.x + Math.sin(rotation)*mountain.sway*scaleFactor
+            let x = element.width*(mountain.x - Math.floor(-camera.x + mountain.x + 0.5)) + Math.sin(rotation)*mountain.sway*scaleFactor
             let y = element.height*mountain.y + Math.cos(rotation)*mountain.sway*scaleFactor
+
 
             let red = Math.round(255 - 255.0/(mountain.closeness/(totalMountains/4) + 1))
             let green = Math.round(255 - 105/(mountain.closeness/(totalMountains/4) + 1))
@@ -194,6 +205,8 @@ window.onload = function() {
 
             context.fill()
         }
+        camera.destinationX = boat.x + boat.vX*1.3
+        camera.x += asymptote(camera.destinationX - camera.x, 0.8, timeDelta)
 
         context.restore()
         requestAnimationFrame(loop)
