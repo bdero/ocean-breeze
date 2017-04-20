@@ -58,8 +58,10 @@ window.onload = function() {
 
     // Camera setup
     let camera = {
+        x: 0,
         destinationX: 0,
-        x: 0
+        destinationXHistory: [0, 0, 0, 0, 0],
+        historyCursor: 0
     }
 
     // Water setup
@@ -87,12 +89,7 @@ window.onload = function() {
                 closeness: {value: closeness, writable: true}
             })
         },
-        render: function() {
-            context.save()
-            let noiseX = simplex.noise(400, timeElapsed/2)*22
-            let noiseY = simplex.noise(500, timeElapsed*0.75)*16
-            let noiseRotation = simplex.noise(600, timeElapsed*0.40)/8
-
+        update: function() {
             // Movement calculations
             if (actions.moveLeft.active)
                 this.vX = Math.max(-this.maxSpeed, this.vX - this.accelRate*timeDelta)
@@ -128,12 +125,18 @@ window.onload = function() {
 
             if (this.closeness === 0 || this.closeness === 0.98)
                 this.vY = 0
+        },
+        render: function() {
+            context.save()
+            let noiseX = simplex.noise(400, timeElapsed/2)*22
+            let noiseY = simplex.noise(500, timeElapsed*0.75)*16
+            let noiseRotation = simplex.noise(600, timeElapsed*0.40)/8
 
             // Initial transform
             context.scale(scaleFactor, scaleFactor)
             context.translate(element.width*this.x/scaleFactor + noiseX, element.height*this.y/scaleFactor + noiseY)
             context.rotate(this.rotation + noiseRotation)
-            context.translate(-15, -90)
+            context.translate(-15, -75)
 
             // Sails
             context.fillStyle = 'orange'
@@ -170,12 +173,21 @@ window.onload = function() {
         }
     }
     let boat = BoatClass.create(0, 0.5)
+
+    // Game loop
     let loop = () => {
         let prevTimeElapsed = timeElapsed
         timeElapsed = (Date.now() - initialTime)/1000
         timeDelta = timeElapsed - prevTimeElapsed
 
         context.save()
+
+        camera.historyCursor = (camera.historyCursor + 1)%camera.destinationXHistory.length
+        camera.destinationXHistory[camera.historyCursor] = boat.x + boat.vX*1.3
+        camera.destinationX = camera.destinationXHistory.reduce((x, y) => x + y)/camera.destinationXHistory.length
+        camera.x += asymptote(camera.destinationX - camera.x, 0.8, timeDelta)
+
+        boat.update()
         context.translate(mX - camera.x*element.width, mY)
 
         let boatDrawn = false
@@ -205,8 +217,6 @@ window.onload = function() {
 
             context.fill()
         }
-        camera.destinationX = boat.x + boat.vX*1.3
-        camera.x += asymptote(camera.destinationX - camera.x, 0.8, timeDelta)
 
         context.restore()
         requestAnimationFrame(loop)
