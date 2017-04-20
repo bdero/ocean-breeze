@@ -68,7 +68,9 @@ window.onload = function() {
 
     // Boat setup
     let BoatClass = {
+        accelRate: 0.3, frictionRate: 0.2, maxSpeed: 3,
         x: 0, y: 0, rotation: 0, closeness: 0,
+        vX: 0, vY: 0,
         create: function(x, closeness) {
             return Object.create(BoatClass, {
                 x: {value: x, writable: true},
@@ -77,17 +79,47 @@ window.onload = function() {
         },
         render: function() {
             context.save()
-            // Initial transform
             let noiseX = simplex.noise(400, timeElapsed/2)*22
             let noiseY = simplex.noise(500, timeElapsed*0.75)*16
             let noiseRotation = simplex.noise(600, timeElapsed*0.40)/8
 
+            // Movement calculations
+            if (actions.moveLeft.active)
+                this.vX = Math.max(-this.maxSpeed, this.vX - this.accelRate*timeDelta)
+            if (actions.moveRight.active)
+                this.vX = Math.min(this.maxSpeed, this.vX + this.accelRate*timeDelta)
             if (actions.moveUp.active)
-                this.closeness = Math.max(0, this.closeness - timeDelta/3)
+                this.vY = Math.max(-this.maxSpeed, this.vY - this.accelRate*timeDelta)
             if (actions.moveDown.active)
-                this.closeness = Math.min(0.98, this.closeness + timeDelta/3)
+                this.vY = Math.min(this.maxSpeed, this.vY + this.accelRate*timeDelta)
+
+            if (actions.moveLeft.active && !actions.moveRight.active) {
+                if (this.vX > 0)
+                    this.vX = Math.max(0, this.vX - this.frictionRate*timeDelta)
+            } else if (actions.moveRight.active && !actions.moveLeft.active) {
+                if (this.vX < 0)
+                    this.vX = Math.min(0, this.vX + this.frictionRate*timeDelta)
+            } else {
+                this.vX = Math.max(0, Math.abs(this.vX) - this.frictionRate*timeDelta) * Math.sign(this.vX)
+            }
+            if (actions.moveUp.active && !actions.moveDown.active) {
+                if (this.vY > 0)
+                    this.vY = Math.max(0, this.vY - this.frictionRate*timeDelta)
+            } else if (actions.moveDown.active && !actions.moveUp.active) {
+                if (this.vY < 0)
+                    this.vY = Math.min(0, this.vY + this.frictionRate*timeDelta)
+            } else {
+                this.vY = Math.max(0, Math.abs(this.vY) - this.frictionRate*timeDelta) * Math.sign(this.vY)
+            }
+
+            this.x += this.vX*timeDelta
+            this.closeness = Math.max(0, Math.min(0.98, this.closeness + this.vY*timeDelta))
             this.y = -0.5 + 0.3 + 0.7*this.closeness
 
+            if (this.closeness === 0 || this.closeness === 0.98)
+                this.vY = 0
+
+            // Initial transform
             context.scale(scaleFactor, scaleFactor)
             context.translate(element.width*this.x/scaleFactor + noiseX, element.height*this.y/scaleFactor + noiseY)
             context.rotate(this.rotation + noiseRotation)
