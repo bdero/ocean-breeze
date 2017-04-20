@@ -18,6 +18,15 @@ window.onload = function() {
     window.addEventListener('resize', resizeCallback)
     resizeCallback()
 
+    let disableControls = true
+    let launchButton = document.getElementById('launch-button')
+    launchButton.onclick = () => {
+        console.log('Launch game')
+        let launchModal = document.getElementById('launch-modal')
+        launchModal.style.display = 'none'
+        disableControls = false
+    }
+
     let actions = {
         moveUp: {
             active: false,
@@ -38,10 +47,12 @@ window.onload = function() {
     }
     let keyCallback = (activate) => {
         return (e) => {
-            for (let action of Object.keys(actions)) {
-                for (let keyCode of actions[action].keyCodes) {
-                    if (keyCode === e.code) {
-                        actions[action].active = activate
+            if (!disableControls) {
+                for (let action of Object.keys(actions)) {
+                    for (let keyCode of actions[action].keyCodes) {
+                        if (keyCode === e.code) {
+                            actions[action].active = activate
+                        }
                     }
                 }
             }
@@ -130,17 +141,17 @@ window.onload = function() {
         render: function() {
             context.save()
             let noiseX = simplex.noise(400, timeElapsed/4)*22
-            let noiseY = simplex.noise(500, timeElapsed*0.75)*16
-            let noiseRotation = simplex.noise(600, timeElapsed*0.40)/8
+            let noiseY = simplex.noise(500, timeElapsed*0.75)*16 + simplex.noise(700, timeElapsed*3)*Math.abs(this.vX)*20
+            let noiseRotation = simplex.noise(600, timeElapsed*0.40)/8 + simplex.noise(800, timeElapsed*2)*Math.abs(this.vX)/10
 
             // Initial transform
             context.scale(scaleFactor, scaleFactor)
             context.translate(
                 element.width*this.x/scaleFactor + noiseX,
-                element.height*(this.y - Math.abs(this.vX)/30)/scaleFactor + noiseY
+                element.height*(this.y)/scaleFactor + noiseY
             )
             context.rotate(this.rotation + this.vX/3 + noiseRotation)
-            context.translate(-15, -90)
+            context.translate(-15, 20)
 
             // Sails
             context.fillStyle = 'orange'
@@ -228,7 +239,7 @@ window.onload = function() {
             context.fillStyle = `rgba(${red}, ${green}, 0, ${alpha})`
             context.beginPath()
             context.moveTo(x - distance*2, y + distance*0.75)
-            context.lineTo(x, y - distance*0.25)
+            context.lineTo(x, y)
             context.lineTo(x + distance*2, y + distance*0.75)
             context.closePath()
 

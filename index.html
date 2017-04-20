@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Ocean Breeze</title>
     <style>
         html, body, canvas {
             overflow: hidden;
@@ -11,11 +11,117 @@
             width: 100%;
             height: 100%;
             background-color: black;
+            color: white;
+        }
+        .center-flex-container {
+            display:flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+        .launch-modal.outer {
+            background-color: rgba(255, 255, 255, 0.4);
+            position: absolute;
+        }
+        .launch-modal.inner {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            background-color: rgba(0, 0, 0, 0.2);
+            width: 40%;
+            min-height: 40%;
+            min-width: 700px;
+            border-radius: 15px;
+        }
+        .launch-modal .vertical-section {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 20px;
+        }
+        .launch-modal .vertical-section.left-column {
+            flex-grow: 0;
+            flex-basis: 0;
+        }
+        .launch-modal .vertical-section.right-column {
+            display: flex;
+            align-self: stretch;
+            flex-grow: 1;
+        }
+        .launch-modal .title {
+            font-size: 40px;
+        }
+        .launch-modal .launch-button-container{
+            display: flex;
+            flex-grow: 0;
+            justify-content: center;
+        }
+        .launch-modal .launch-button-container button {
+            transition: background-color 0.7s;
+            background-color: #d9fff5;
+            padding: 20px;
+            width: 170px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            outline: none;
+        }
+        .launch-modal .launch-button-container button:hover {
+            transition: background-color 0.4s;
+            background-color: #c7ffcc;
+        }
+        .launch-modal .google-ad {
+            margin-top: 30px;
+        }
+        .launch-modal .instructions {
+            flex-grow: 1;
+            display:block;
+            height: 100%;
+        }
+        .launch-modal .instructions header {
+            font-size: 30px;
         }
     </style>
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-57985355-1', 'auto');
+        ga('send', 'pageview');
+    </script>
     <script src="vendor/perlin-noise-simplex.js"></script>
 </head>
 <body>
+    <div id="launch-modal" class="launch-modal outer center-flex-container">
+        <div class="launch-modal inner">
+            <span class="vertical-section center-flex-container left-column">
+                <div class="title">Ocean Breeze</div>
+                <div class="google-ad">
+                    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                    <!-- Ocean Breeze -->
+                    <ins class="adsbygoogle"
+                         style="display:inline-block;width:336px;height:280px"
+                         data-ad-client="ca-pub-4625725503378942"
+                         data-ad-slot="1786714111"></ins>
+                    <script>
+                        (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
+            </span>
+            <span class="vertical-section right-column">
+                <div class="instructions">
+                    <header>How to play</header>
+                    <p>Use the WASD keys to move.</p>
+                </div>
+                <div class="launch-button-container">
+                    <button id="launch-button">Set sail!</button>
+                </div>
+            </span>
+        </div>
+    </div>
     <canvas id="game"></canvas>
     <script src="game.js"></script>
 </body>
