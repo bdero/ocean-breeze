@@ -65,17 +65,6 @@ window.onload = function() {
         return (1 - 1/(dt/divisor + 1))*dist
     }
 
-    function drawPath(points, rotation) {
-        let y = -Math.sin(rotation)/2
-        context.beginPath()
-        context.moveTo(points[0], points[1] + y*points[0])
-        for (let i = 2; i < points.length; i += 2) {
-            context.lineTo(points[i], points[i + 1] + y*points[i])
-        }
-        context.closePath()
-        context.fill()
-    }
-
     let simplex = new SimplexNoise()
 
     let arrowPoints = [
@@ -273,11 +262,31 @@ window.onload = function() {
         // Wind arrow
         context.save()
 
-        context.fillStyle = 'brown'
-        context.translate(element.width - 120, element.height - 70)
+        context.translate(element.width - 120, element.height - 110)
+
+        context.save()
+        context.font = '40px sans-serif'
+        context.strokeStyle = 'white'
+        context.lineWidth = 6
+        context.strokeText('breeze', -context.measureText('breeze').width/2, 70)
+        context.fillStyle = 'maroon'
+        context.fillText('breeze', -context.measureText('breeze').width/2, 70)
+        context.restore()
+
         context.scale(wind.x*8, 4)
         let arrowRotation = (wind.x + 1)*Math.PI/2
-        drawPath(arrowPoints, arrowRotation)
+        let y = -Math.sin(arrowRotation)/2
+        context.fillStyle = 'brown'
+        context.beginPath()
+        context.moveTo(arrowPoints[0], arrowPoints[1] + y*arrowPoints[0])
+        for (let i = 2; i < arrowPoints.length; i += 2) {
+            context.lineTo(arrowPoints[i], arrowPoints[i + 1] + y*arrowPoints[i])
+        }
+        context.closePath()
+        context.fillStyle = 'brown'
+        context.fill()
+        context.strokeStyle = 'white'
+        context.stroke()
 
         context.restore()
 
