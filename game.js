@@ -112,6 +112,7 @@ window.onload = function() {
         x: 0, y: 0, rotation: 0, closeness: 0,
         vX: 0, vY: 0,
         sailPosition: 0,
+        sailPositionDestination: 0,
         create: function(x, closeness) {
             return Object.create(BoatClass, {
                 x: {value: x, writable: true},
@@ -121,11 +122,12 @@ window.onload = function() {
         update: function() {
             // Movement calculations
             if (actions.moveLeft.active && !actions.moveRight.active)
-                this.sailPosition = -1
+                this.sailPositionDestination = -1
             else if (actions.moveRight.active && !actions.moveLeft.active)
-                this.sailPosition = 1
+                this.sailPositionDestination = 1
             else
-                this.sailPosition = 0
+                this.sailPositionDestination = 0
+            this.sailPosition += asymptote(this.sailPositionDestination - this.sailPosition, 1, timeDelta)
             this.vX += (this.sailPosition*wind.x/20 + wind.x/60)*timeDelta
             if (actions.moveUp.active)
                 this.vY = Math.max(-this.maxSpeed, this.vY - this.accelRate*timeDelta)
@@ -157,24 +159,35 @@ window.onload = function() {
             context.rotate(this.rotation + this.vX/1.5 + wind.x/10 + noiseRotation)
             context.translate(-15, 45)
 
+            context.save()
+
+            context.translate(37, 0)
             // Sails
             context.fillStyle = 'orange'
             context.beginPath()
-            context.moveTo(37, -280)
-            context.lineTo(130, 0)
-            context.lineTo(60, 0)
+            context.moveTo(0, -280)
+            context.lineTo(93, 0)
+            context.lineTo(23, 0)
             context.closePath()
             context.fill()
+
+            context.save()
+            context.scale(0.9 - this.sailPosition/5, 1)
             context.beginPath()
-            context.moveTo(37, -300)
-            context.lineTo(17, -30)
-            context.lineTo(-150, -30)
+            context.moveTo(0, -300)
+            context.lineTo(-20, -30)
+            context.lineTo(-187, -30)
             context.closePath()
             context.fill()
             // Sail poles
             context.fillStyle = 'white'
-            context.fillRect(30, -300, 14, 300)
-            context.fillRect(-150, -33, 190, 8)
+            context.fillRect(-187, -33, 190, 8)
+            context.restore()
+            context.fillStyle = 'white'
+            context.fillRect(-7, -300, 14, 300)
+
+            context.restore()
+
             // Base hull
             context.save()
             context.fillStyle = 'maroon'
