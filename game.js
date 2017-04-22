@@ -120,15 +120,18 @@ window.onload = function() {
         },
         update: function() {
             // Movement calculations
-            if (actions.moveLeft.active)
-                this.vX = Math.max(-this.maxSpeed, this.vX - this.accelRate*timeDelta)
-            if (actions.moveRight.active)
-                this.vX = Math.min(this.maxSpeed, this.vX + this.accelRate*timeDelta)
+            if (actions.moveLeft.active && !actions.moveRight.active)
+                this.sailPosition = -1
+            else if (actions.moveRight.active && !actions.moveLeft.active)
+                this.sailPosition = 1
+            else
+                this.sailPosition = 0
+            this.vX += (this.sailPosition*wind.x/20 + wind.x/60)*timeDelta
             if (actions.moveUp.active)
                 this.vY = Math.max(-this.maxSpeed, this.vY - this.accelRate*timeDelta)
             if (actions.moveDown.active)
                 this.vY = Math.min(this.maxSpeed, this.vY + this.accelRate*timeDelta)
-            this.vX = Math.max(0, Math.abs(this.vX) - this.frictionRate*timeDelta) * Math.sign(this.vX)
+            this.vX = Math.min(this.maxSpeed, Math.max(0, Math.abs(this.vX)*(1 - this.frictionRate*timeDelta))) * Math.sign(this.vX)
             this.vY = Math.max(0, Math.abs(this.vY) - this.frictionRate*timeDelta) * Math.sign(this.vY)
 
             this.x += this.vX*timeDelta
@@ -151,7 +154,7 @@ window.onload = function() {
                 element.height*(this.y)/scaleFactor + noiseY
             )
             context.scale(0.8, 0.8)
-            context.rotate(this.rotation + this.vX/1.5 + noiseRotation)
+            context.rotate(this.rotation + this.vX/1.5 + wind.x/10 + noiseRotation)
             context.translate(-15, 45)
 
             // Sails
