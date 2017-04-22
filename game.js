@@ -62,10 +62,32 @@ window.onload = function() {
     document.addEventListener('keyup', keyCallback(false))
 
     function asymptote(dist, divisor, dt) {
-        return (1 - 1/(dt/divisor + 1))*dist;
+        return (1 - 1/(dt/divisor + 1))*dist
+    }
+
+    function drawPath(points, rotation) {
+        let y = -Math.sin(rotation)/2
+        context.beginPath()
+        context.moveTo(points[0], points[1] + y*points[0])
+        for (let i = 2; i < points.length; i += 2) {
+            context.lineTo(points[i], points[i + 1] + y*points[i])
+        }
+        context.closePath()
+        context.fill()
     }
 
     let simplex = new SimplexNoise()
+
+    let arrowPoints = [
+        -10, -6,
+          3, -6,
+          3,-10,
+         10,  0,
+          3, 10,
+          3,  6,
+        -10,  6,
+         -8,  0
+    ]
 
     // Camera setup
     let camera = {
@@ -204,9 +226,11 @@ window.onload = function() {
         timeElapsed = (Date.now() - initialTime)/1000
         timeDelta = timeElapsed - prevTimeElapsed
 
-        context.save()
+        wind.x = Math.sin(simplex.noise(900, timeElapsed/5)*Math.PI/2)
 
         boat.update()
+
+        context.save()
 
         // Camera calculations
         camera.destinationZoom = 1.4 - Math.abs(boat.vX)*0.8
@@ -261,6 +285,18 @@ window.onload = function() {
         }
 
         context.restore()
+
+        // Wind arrow
+        context.save()
+
+        context.fillStyle = 'brown'
+        context.translate(element.width - 120, element.height - 70)
+        context.scale(wind.x*8, 4)
+        let arrowRotation = (wind.x + 1)*Math.PI/2
+        drawPath(arrowPoints, arrowRotation)
+
+        context.restore()
+
         requestAnimationFrame(loop)
     }
     loop()
