@@ -73,7 +73,7 @@ window.onload = function() {
         destinationX: 0,
         destinationXHistory: [0, 0, 0, 0, 0],
         historyCursor: 0,
-        zoom: 1.1
+        zoom: 1.2
     }
 
     // Water setup
@@ -191,6 +191,9 @@ window.onload = function() {
 
     // Game loop
     let loop = () => {
+        context.fillStyle = "cyan"
+        context.fillRect(0, 0, element.width, element.height)
+
         let prevTimeElapsed = timeElapsed
         timeElapsed = (Date.now() - initialTime)/1000
         timeDelta = timeElapsed - prevTimeElapsed
@@ -215,10 +218,11 @@ window.onload = function() {
         let boatDrawn = false
         for (let mountain of mountains) {
             mountain.rotation += mountain.rotationSpeed
-            let distance = (mountain.closeness*0.10 + 10000/totalMountains + 400)*scaleFactor
+            let distance = (10000/totalMountains + 200)*scaleFactor
             let rotation = mountain.initialRotation + mountain.rotationSpeed*timeElapsed
+            let parallax = camera.x*mountain.closeness*0.0008
             let x = (
-                element.width*(mountain.x - Math.floor(-camera.x + mountain.x + 0.5))
+                element.width*(mountain.x - parallax - Math.floor(mountain.x - parallax - camera.x + 0.5))
                 + Math.sin(rotation)*mountain.sway*scaleFactor
             )
             let y = element.height*mountain.y + Math.cos(rotation)*mountain.sway*scaleFactor
