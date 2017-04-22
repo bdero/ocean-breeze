@@ -119,9 +119,10 @@ window.onload = function() {
 
     // Boat setup
     let BoatClass = {
-        accelRate: 0.15, frictionRate: 0.1, maxSpeed: 0.35,
+        accelRate: 0.2, frictionRate: 0.1, maxSpeed: 0.35,
         x: 0, y: 0, rotation: 0, closeness: 0,
         vX: 0, vY: 0,
+        sailPosition: 0,
         create: function(x, closeness) {
             return Object.create(BoatClass, {
                 x: {value: x, writable: true},
@@ -138,25 +139,8 @@ window.onload = function() {
                 this.vY = Math.max(-this.maxSpeed, this.vY - this.accelRate*timeDelta)
             if (actions.moveDown.active)
                 this.vY = Math.min(this.maxSpeed, this.vY + this.accelRate*timeDelta)
-
-            if (actions.moveLeft.active && !actions.moveRight.active) {
-                if (this.vX > 0)
-                    this.vX = Math.max(0, this.vX - this.frictionRate*timeDelta)
-            } else if (actions.moveRight.active && !actions.moveLeft.active) {
-                if (this.vX < 0)
-                    this.vX = Math.min(0, this.vX + this.frictionRate*timeDelta)
-            } else {
-                this.vX = Math.max(0, Math.abs(this.vX) - this.frictionRate*timeDelta) * Math.sign(this.vX)
-            }
-            if (actions.moveUp.active && !actions.moveDown.active) {
-                if (this.vY > 0)
-                    this.vY = Math.max(0, this.vY - this.frictionRate*timeDelta)
-            } else if (actions.moveDown.active && !actions.moveUp.active) {
-                if (this.vY < 0)
-                    this.vY = Math.min(0, this.vY + this.frictionRate*timeDelta)
-            } else {
-                this.vY = Math.max(0, Math.abs(this.vY) - this.frictionRate*timeDelta) * Math.sign(this.vY)
-            }
+            this.vX = Math.max(0, Math.abs(this.vX) - this.frictionRate*timeDelta) * Math.sign(this.vX)
+            this.vY = Math.max(0, Math.abs(this.vY) - this.frictionRate*timeDelta) * Math.sign(this.vY)
 
             this.x += this.vX*timeDelta
             this.closeness = Math.max(0.02, Math.min(0.98, this.closeness + this.vY*timeDelta))
