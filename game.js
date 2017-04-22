@@ -78,7 +78,7 @@ window.onload = function() {
 
     // Water setup
     let mountains = []
-    let totalMountains = 2000
+    let totalMountains = 2200
     for (let i = 0; i < totalMountains; i++) {
         mountains.push({
             closeness: i,
@@ -86,13 +86,13 @@ window.onload = function() {
             y: -0.5 + 0.3 + (Math.random()/5) + 0.7*i/totalMountains,
             initialRotation: Math.random()*Math.PI*2,
             rotationSpeed: (Math.random()*1 + 1)*Math.sign(Math.random() - 0.5),
-            sway: Math.random()*30 + 10
+            sway: Math.random()*20 + 5
         })
     }
 
     // Boat setup
     let BoatClass = {
-        accelRate: 0.3, frictionRate: 0.2, maxSpeed: 0.7,
+        accelRate: 0.15, frictionRate: 0.1, maxSpeed: 0.35,
         x: 0, y: 0, rotation: 0, closeness: 0,
         vX: 0, vY: 0,
         create: function(x, closeness) {
@@ -141,8 +141,8 @@ window.onload = function() {
         render: function() {
             context.save()
             let noiseX = simplex.noise(400, timeElapsed/4)*22
-            let noiseY = simplex.noise(500, timeElapsed*0.75)*16 + simplex.noise(700, timeElapsed*3)*Math.abs(this.vX)*20
-            let noiseRotation = simplex.noise(600, timeElapsed*0.40)/8 + simplex.noise(800, timeElapsed*2)*Math.abs(this.vX)/10
+            let noiseY = simplex.noise(500, timeElapsed*0.75)*16 + simplex.noise(700, timeElapsed*3)*Math.abs(this.vX)*12
+            let noiseRotation = simplex.noise(600, timeElapsed*0.40)/8 + simplex.noise(800, timeElapsed*2.5)*Math.abs(this.vX)/7
 
             // Initial transform
             context.scale(scaleFactor, scaleFactor)
@@ -150,8 +150,9 @@ window.onload = function() {
                 element.width*this.x/scaleFactor + noiseX,
                 element.height*(this.y)/scaleFactor + noiseY
             )
-            context.rotate(this.rotation + this.vX/3 + noiseRotation)
-            context.translate(-15, 20)
+            context.scale(0.8, 0.8)
+            context.rotate(this.rotation + this.vX/1.5 + noiseRotation)
+            context.translate(-15, 45)
 
             // Sails
             context.fillStyle = 'orange'
@@ -242,9 +243,9 @@ window.onload = function() {
 
             context.fillStyle = `rgba(${red}, ${green}, 0, ${alpha})`
             context.beginPath()
-            context.moveTo(x - distance*2, y + distance*0.75)
+            context.moveTo(x - distance*2.5, y + distance*0.75)
             context.lineTo(x, y)
-            context.lineTo(x + distance*2, y + distance*0.75)
+            context.lineTo(x + distance*2.5, y + distance*0.75)
             context.closePath()
 
             context.fill()
