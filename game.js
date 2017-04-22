@@ -156,7 +156,7 @@ window.onload = function() {
                 element.height*(this.y)/scaleFactor + noiseY
             )
             context.scale(0.8, 0.8)
-            context.rotate(this.rotation + this.vX/1.5 + wind.x/10 + noiseRotation)
+            context.rotate(this.rotation + this.vX/1.5 + wind.x/15 + noiseRotation)
             context.translate(-15, 45)
 
             context.save()
@@ -172,7 +172,7 @@ window.onload = function() {
             context.fill()
 
             context.save()
-            context.scale(0.9 - this.sailPosition/5, 1)
+            context.scale(0.9 - this.sailPosition/5 + this.sailPosition*wind.x*simplex.noise(1100, timeElapsed*10)/15, 1)
             context.beginPath()
             context.moveTo(0, -300)
             context.lineTo(-20, -30)
@@ -215,7 +215,13 @@ window.onload = function() {
         timeElapsed = (Date.now() - initialTime)/1000
         timeDelta = timeElapsed - prevTimeElapsed
 
-        wind.x = Math.sin(simplex.noise(900, timeElapsed/5)*Math.PI/2)
+        wind.x = Math.sin(
+            Math.min(1, Math.max(-1,
+                simplex.noise(900, timeElapsed/8)
+                + simplex.noise(1000, timeElapsed*4)/16
+            ))*Math.PI/2
+        ) + simplex.noise(1200, timeElapsed*2)/7
+        wind.x = Math.min(1, Math.abs(wind.x))*Math.sign(wind.x)
 
         boat.update()
 
@@ -289,7 +295,7 @@ window.onload = function() {
         context.fillText('breeze', -context.measureText('breeze').width/2, 70)
         context.restore()
 
-        context.scale(wind.x*8, 4)
+        context.scale(Math.sin(wind.x*Math.PI/2)*8, 4)
         let arrowRotation = (wind.x + 1)*Math.PI/2
         let y = -Math.sin(arrowRotation)/2
         context.fillStyle = 'brown'
