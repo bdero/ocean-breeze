@@ -73,7 +73,8 @@ window.onload = function() {
         destinationX: 0,
         destinationXHistory: [0, 0, 0, 0, 0],
         historyCursor: 0,
-        zoom: 1.2
+        zoom: 1.2,
+        destinationZoom: 1.2
     }
 
     // Water setup
@@ -88,6 +89,10 @@ window.onload = function() {
             rotationSpeed: (Math.random()*1 + 1)*Math.sign(Math.random() - 0.5),
             sway: Math.random()*20 + 5
         })
+    }
+
+    let wind = {
+        x: 0
     }
 
     // Boat setup
@@ -192,7 +197,7 @@ window.onload = function() {
 
     // Game loop
     let loop = () => {
-        context.fillStyle = "cyan"
+        context.fillStyle = 'rgb(200, 120, 200)'
         context.fillRect(0, 0, element.width, element.height)
 
         let prevTimeElapsed = timeElapsed
@@ -200,19 +205,23 @@ window.onload = function() {
         timeDelta = timeElapsed - prevTimeElapsed
 
         context.save()
-        context.scale(camera.zoom, camera.zoom)
+
+        boat.update()
 
         // Camera calculations
+        camera.destinationZoom = 1.4 - Math.abs(boat.vX)*0.8
+        camera.zoom += asymptote(camera.destinationZoom - camera.zoom, 30, timeElapsed)
+        context.scale(camera.zoom, camera.zoom)
+
         camera.historyCursor = (camera.historyCursor + 1)%camera.destinationXHistory.length
         camera.destinationXHistory[camera.historyCursor] = boat.x + boat.vX*1.3
         camera.destinationX = camera.destinationXHistory.reduce((x, y) => x + y)/camera.destinationXHistory.length
         camera.x += asymptote(camera.destinationX - camera.x, 0.8, timeDelta)
         camera.y = boat.y
 
-        boat.update()
         context.translate(
-            mX/camera.zoom - camera.x*element.width + simplex.noise(100, timeElapsed/5)*12*scaleFactor,
-            mY/camera.zoom - camera.y/5*element.height + simplex.noise(200, timeElapsed/5)*12*scaleFactor
+            mX/camera.zoom - element.width*(camera.x + simplex.noise(100, timeElapsed/5)/100),
+            mY/camera.zoom - element.height*(camera.y/5 + simplex.noise(200, timeElapsed/5)/100 + camera.zoom/7 - 0.1)
         )
 
         // Render scene
