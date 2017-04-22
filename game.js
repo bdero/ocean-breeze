@@ -77,13 +77,13 @@ window.onload = function() {
     }
 
     // Water setup
-    let mountains = []
-    let totalMountains = 2200
-    for (let i = 0; i < totalMountains; i++) {
-        mountains.push({
+    let waves = []
+    let totalWaves = 2200
+    for (let i = 0; i < totalWaves; i++) {
+        waves.push({
             closeness: i,
             x: -0.5 + Math.random(),
-            y: -0.5 + 0.3 + (Math.random()/5) + 0.7*i/totalMountains,
+            y: -0.5 + 0.3 + (Math.random()/5) + 0.7*i/totalWaves,
             initialRotation: Math.random()*Math.PI*2,
             rotationSpeed: (Math.random()*1 + 1)*Math.sign(Math.random() - 0.5),
             sway: Math.random()*20 + 5
@@ -217,28 +217,28 @@ window.onload = function() {
 
         // Render scene
         let boatDrawn = false
-        for (let mountain of mountains) {
-            mountain.rotation += mountain.rotationSpeed
-            let distance = (10000/totalMountains + 200)*scaleFactor
-            let rotation = mountain.initialRotation + mountain.rotationSpeed*timeElapsed
-            let parallax = camera.x*mountain.closeness*0.0008
+        for (let wave of waves) {
+            wave.rotation += wave.rotationSpeed
+            let distance = (10000/totalWaves + 200)*scaleFactor
+            let rotation = wave.initialRotation + wave.rotationSpeed*timeElapsed
+            let parallax = camera.x*wave.closeness*0.0008
             let x = (
-                element.width*(mountain.x - parallax - Math.floor(mountain.x - parallax - camera.x + 0.5))
-                + Math.sin(rotation)*mountain.sway*scaleFactor
+                element.width*(wave.x - parallax - Math.floor(wave.x - parallax - camera.x + 0.5))
+                + Math.sin(rotation)*wave.sway*scaleFactor
             )
-            let y = element.height*mountain.y + Math.cos(rotation)*mountain.sway*scaleFactor
+            let y = element.height*wave.y + Math.cos(rotation)*wave.sway*scaleFactor
 
-            let boatCloseness = boat.closeness*totalMountains
-            if (!boatDrawn && mountain.closeness > boatCloseness) {
+            let boatCloseness = boat.closeness*totalWaves
+            if (!boatDrawn && wave.closeness > boatCloseness) {
                 boat.render()
                 boatDrawn = true
             }
 
-            let red = Math.round(255 - 255.0/(mountain.closeness/(totalMountains/4) + 1))
-            let green = Math.round(255 - 105/(mountain.closeness/(totalMountains/4) + 1))
+            let red = Math.round(255 - 255.0/(wave.closeness/(totalWaves/4) + 1))
+            let green = Math.round(255 - 105/(wave.closeness/(totalWaves/4) + 1))
             let alpha = Math.min(
                 1,
-                Math.abs(boatCloseness - mountain.closeness)/100 + Math.abs(boat.x - x/element.width)*3
+                Math.abs(boatCloseness - wave.closeness)/100 + Math.abs(boat.x - x/element.width)*3
             )
 
             context.fillStyle = `rgba(${red}, ${green}, 0, ${alpha})`
