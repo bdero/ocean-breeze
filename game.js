@@ -109,7 +109,7 @@ window.onload = function() {
     // Boat setup
     let BoatClass = {
         accelRate: 0.2, frictionRate: 0.1, maxSpeed: 0.35,
-        x: 0, y: 0, rotation: 0, closeness: 0,
+        x: 0, rotation: 0, closeness: 0,
         vX: 0, vY: 0,
         sailPosition: 0,
         sailPositionDestination: 0,
@@ -138,23 +138,17 @@ window.onload = function() {
 
             this.x += this.vX*timeDelta
             this.closeness = Math.max(0.02, Math.min(0.98, this.closeness + this.vY*timeDelta))
-            this.y = -0.5 + 0.3 + 0.7*this.closeness
 
             if (this.closeness === 0.02 || this.closeness === 0.98)
                 this.vY = 0
         },
         render: function() {
-            context.save()
             let noiseX = simplex.noise(400, timeElapsed/4)*22
             let noiseY = simplex.noise(500, timeElapsed*0.75)*16 + simplex.noise(700, timeElapsed*3)*Math.abs(this.vX)*12
             let noiseRotation = simplex.noise(600, timeElapsed*0.40)/8 + simplex.noise(800, timeElapsed*2.5)*Math.abs(this.vX)/7
 
             // Initial transform
-            context.scale(scaleFactor, scaleFactor)
-            context.translate(
-                element.width*this.x/scaleFactor + noiseX,
-                element.height*(this.y)/scaleFactor + noiseY
-            )
+            context.translate(noiseX, noiseY)
             context.scale(0.8, 0.8)
             context.rotate(this.rotation + this.vX/1.5 + wind.x/15 + noiseRotation)
             context.translate(-15, 45)
@@ -200,11 +194,28 @@ window.onload = function() {
             // Base cap
             context.fillStyle = 'brown'
             context.fillRect(-140, -10, 280, 20)
-
-            context.restore()
         }
     }
     let boat = BoatClass.create(0, 0.5)
+
+    function renderGameObject(gameObject, currentWave) {
+        if (!gameObject.drawn && currentWave.closeness > gameObject.closeness*totalWaves) {
+            context.save()
+            context.scale(scaleFactor, scaleFactor)
+            context.translate(
+                element.width*gameObject.x/scaleFactor,
+                element.height*(-0.5 + 0.3 + 0.7*gameObject.closeness)/scaleFactor
+            )
+            gameObject.render()
+            context.restore()
+            gameObject.drawn = true
+        }
+    }
+
+    function renderRock() {
+        context.fillStyle = 'black'
+        context.fillRect(-50, -50, 100, 100)
+    }
 
     // Game loop
     let loop = () => {
@@ -236,15 +247,33 @@ window.onload = function() {
         camera.destinationXHistory[camera.historyCursor] = boat.x + boat.vX*1.3
         camera.destinationX = camera.destinationXHistory.reduce((x, y) => x + y)/camera.destinationXHistory.length
         camera.x += asymptote(camera.destinationX - camera.x, 0.8, timeDelta)
-        camera.y = boat.y
+        camera.y = boat.closeness - 0.3
 
         context.translate(
             mX/camera.zoom - element.width*(camera.x + simplex.noise(100, timeElapsed/5)/100),
             mY/camera.zoom - element.height*(camera.y/5 + simplex.noise(200, timeElapsed/5)/100 + camera.zoom/7 - 0.1)
         )
 
+        // Compute rocks
+        let cameraRockBaseX = Math.floor(camera.x*10)/10
+        let rocks = []
+        for (let x = -0.5; x <= 0.5 ; x += 0.1) {
+            for (let y = 0; y <= 1; y += 0.1) {
+                let rockNoise = simplex.noise3d(100, (cameraRockBaseX + x)*70, y*70)
+                if (rockNoise > 0.6) {
+                    let rock = {
+                        x: x + cameraRockBaseX,
+                        closeness: y,
+                        drawn: false
+                    }
+                    rock.render = renderRock.bind(rock)
+                    rocks.push(rock)
+                }
+            }
+        }
+
         // Render scene
-        let boatDrawn = false
+        boat.drawn = false
         for (let wave of waves) {
             wave.rotation += wave.rotationSpeed
             let distance = (10000/totalWaves + 200)*scaleFactor
@@ -256,17 +285,17 @@ window.onload = function() {
             )
             let y = element.height*wave.y + Math.cos(rotation)*wave.sway*scaleFactor
 
-            let boatCloseness = boat.closeness*totalWaves
-            if (!boatDrawn && wave.closeness > boatCloseness) {
-                boat.render()
-                boatDrawn = true
+            renderGameObject(boat, wave)
+
+            for (let rock of rocks) {
+                renderGameObject(rock, wave)
             }
 
             let red = Math.round(255 - 255.0/(wave.closeness/(totalWaves/4) + 1))
             let green = Math.round(255 - 105/(wave.closeness/(totalWaves/4) + 1))
             let alpha = Math.min(
                 1,
-                Math.abs(boatCloseness - wave.closeness)/100 + Math.abs(boat.x - x/element.width)*3
+                Math.abs(boat.closeness*totalWaves - wave.closeness)/100 + Math.abs(boat.x - x/element.width)*3
             )
 
             context.fillStyle = `rgba(${red}, ${green}, 0, ${alpha})`
