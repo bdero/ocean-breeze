@@ -237,7 +237,7 @@ window.onload = function() {
                 Math.cos(i)*noise
             )
         }
-        let red = Math.round(140 + simplex.noise(this.x*212.6, this.closeness*59.33)*20)
+        let red = Math.round(180 - this.closeness*60)
         context.fillStyle = `rgb(${red}, 120, 135)`
         context.translate(0, element.height*0.06/scaleFactor)
         drawPolygon(points)
