@@ -212,9 +212,35 @@ window.onload = function() {
         }
     }
 
+    function drawPolygon(points) {
+        context.beginPath()
+        context.moveTo(points[0], points[1])
+        for (let i = 2; i < points.length; i += 2) {
+            context.lineTo(points[i], points[i + 1])
+        }
+        context.closePath()
+        context.fill()
+    }
+
     function renderRock() {
-        context.fillStyle = 'black'
-        context.fillRect(-50, -50, 100, 100)
+        let points = []
+        for (let i = 0; i < 2*Math.PI; i += 2*Math.PI/30) {
+            let noise = (
+                simplex.noise3d(this.x*293.32, this.closeness*851.49, i)
+                + simplex.noise3d(this.x*217.3, this.closeness*926.21, i*4)/4
+                + simplex.noise3d(this.x*629.3, this.closeness*456.7, i*16)/8
+                + 3
+            )*this.size
+
+            points.push(
+                Math.sin(i)*noise,
+                Math.cos(i)*noise
+            )
+        }
+        let red = Math.round(140 + simplex.noise(this.x*212.6, this.closeness*59.33)*20)
+        context.fillStyle = `rgb(${red}, 120, 135)`
+        context.translate(0, element.height*0.06/scaleFactor)
+        drawPolygon(points)
     }
 
     // Game loop
@@ -255,7 +281,7 @@ window.onload = function() {
         )
 
         // Compute rocks
-        let cameraRockBaseX = Math.floor(camera.x*10)/10
+        let cameraRockBaseX = Math.round(camera.x*10)/10
         let rocks = []
         for (let x = -0.5; x <= 0.5 ; x += 0.1) {
             for (let y = 0; y <= 1; y += 0.1) {
@@ -265,6 +291,7 @@ window.onload = function() {
                     let rock = {
                         x: rockX + simplex.noise(1344, y*1384)*0.05,
                         closeness: y + simplex.noise(1489, rockX*1482)*0.05,
+                        size: 15 + (simplex.noise(rockX*849.32, y*552.2) + 1)*30,
                         drawn: false
                     }
                     rock.render = renderRock.bind(rock)
@@ -328,7 +355,6 @@ window.onload = function() {
         context.scale(Math.sin(wind.x*Math.PI/2)*8, 4)
         let arrowRotation = (wind.x + 1)*Math.PI/2
         let y = -Math.sin(arrowRotation)/2
-        context.fillStyle = 'brown'
         context.beginPath()
         context.moveTo(arrowPoints[0], arrowPoints[1] + y*arrowPoints[0])
         for (let i = 2; i < arrowPoints.length; i += 2) {
