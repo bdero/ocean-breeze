@@ -259,11 +259,12 @@ window.onload = function() {
         let rocks = []
         for (let x = -0.5; x <= 0.5 ; x += 0.1) {
             for (let y = 0; y <= 1; y += 0.1) {
-                let rockNoise = simplex.noise3d(100, (cameraRockBaseX + x)*70, y*70)
+                let rockX = x + cameraRockBaseX
+                let rockNoise = simplex.noise3d(100, rockX*70, y*70)
                 if (rockNoise > 0.6) {
                     let rock = {
-                        x: x + cameraRockBaseX,
-                        closeness: y,
+                        x: rockX + simplex.noise(1344, y*1384)*0.05,
+                        closeness: y + simplex.noise(1489, rockX*1482)*0.05,
                         drawn: false
                     }
                     rock.render = renderRock.bind(rock)
