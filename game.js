@@ -91,14 +91,20 @@ window.onload = function() {
     // Water setup
     let waves = []
     let totalWaves = 2200
+    let waterStartColor = [248, 165, 84]
+    let waterEndColor = [179, 63, 239]
     for (let i = 0; i < totalWaves; i++) {
+        let red = Math.round(waterStartColor[0] + asymptote(waterEndColor[0] - waterStartColor[0], 200, i/totalWaves*900))
+        let green = Math.round(waterStartColor[1] + asymptote(waterEndColor[1] - waterStartColor[1], 200, i/totalWaves*900))
+        let blue = Math.round(waterStartColor[2] + asymptote(waterEndColor[2] - waterStartColor[2], 200, i/totalWaves*900))
         waves.push({
             closeness: i,
             x: -0.5 + Math.random(),
             y: -0.5 + 0.3 + (Math.random()/5) + 0.7*i/totalWaves,
             initialRotation: Math.random()*Math.PI*2,
             rotationSpeed: (Math.random()*1 + 1)*Math.sign(Math.random() - 0.5),
-            sway: Math.random()*20 + 5
+            sway: Math.random()*20 + 5,
+            color: `${red}, ${green}, ${blue}`
         })
     }
 
@@ -222,6 +228,8 @@ window.onload = function() {
         context.fill()
     }
 
+    let rockStartColor = [180, 120, 135]
+    let rockEndColor = [141, 72, 167]
     function renderRock() {
         let points = []
         for (let i = 0; i < 2*Math.PI; i += 2*Math.PI/30) {
@@ -237,15 +245,17 @@ window.onload = function() {
                 Math.cos(i)*noise
             )
         }
-        let red = Math.round(180 - this.closeness*60)
-        context.fillStyle = `rgb(${red}, 120, 135)`
+        let red = Math.round(rockStartColor[0] + (rockEndColor[0] - rockStartColor[0])*this.closeness)
+        let green = Math.round(rockStartColor[1] + (rockEndColor[1] - rockStartColor[1])*this.closeness)
+        let blue = Math.round(rockStartColor[2] + (rockEndColor[2] - rockStartColor[2])*this.closeness)
+        context.fillStyle = `rgb(${red}, ${green}, ${blue})`
         context.translate(0, element.height*0.06/scaleFactor)
         drawPolygon(points)
     }
 
     // Game loop
     let loop = () => {
-        context.fillStyle = 'rgb(200, 120, 200)'
+        context.fillStyle = 'rgb(255, 202, 100)'
         context.fillRect(0, 0, element.width, element.height)
 
         let prevTimeElapsed = timeElapsed
@@ -254,7 +264,7 @@ window.onload = function() {
 
         wind.x = Math.sin(
             Math.min(1, Math.max(-1,
-                simplex.noise(900, timeElapsed/8)
+                simplex.noise(900, timeElapsed/12)
                 + simplex.noise(1000, timeElapsed*4)/16
             ))*Math.PI/2
         ) + simplex.noise(1200, timeElapsed*2)/7
@@ -306,7 +316,7 @@ window.onload = function() {
             wave.rotation += wave.rotationSpeed
             let distance = (10000/totalWaves + 200)*scaleFactor
             let rotation = wave.initialRotation + wave.rotationSpeed*timeElapsed
-            let parallax = camera.x*wave.closeness*0.0008
+            let parallax = camera.x*wave.closeness*0.0004
             let x = (
                 element.width*(wave.x - parallax - Math.floor(wave.x - parallax - camera.x + 0.5))
                 + Math.sin(rotation)*wave.sway*scaleFactor
@@ -319,14 +329,12 @@ window.onload = function() {
                 renderGameObject(rock, wave)
             }
 
-            let red = Math.round(255 - 255.0/(wave.closeness/(totalWaves/4) + 1))
-            let green = Math.round(255 - 105/(wave.closeness/(totalWaves/4) + 1))
             let alpha = Math.min(
                 1,
                 Math.abs(boat.closeness*totalWaves - wave.closeness)/100 + Math.abs(boat.x - x/element.width)*3
             )
 
-            context.fillStyle = `rgba(${red}, ${green}, 0, ${alpha})`
+            context.fillStyle = `rgba(${wave.color}, ${alpha})`
             context.beginPath()
             context.moveTo(x - distance*2.5, y + distance*0.75)
             context.lineTo(x, y)
