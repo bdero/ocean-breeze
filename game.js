@@ -49,6 +49,8 @@ window.onload = function() {
                     }
                 }
             }
+            e.preventDefault()
+            return false
         }
     }
     document.addEventListener('keydown', keyCallback(true))
@@ -236,6 +238,7 @@ window.onload = function() {
                 actions[action].active = false
 
             disableControls = false
+            element.tabIndex = 1
         }
     }
 
