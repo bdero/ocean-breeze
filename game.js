@@ -19,13 +19,6 @@ window.onload = function() {
     resizeCallback()
 
     let disableControls = true
-    let launchButton = document.getElementById('launch-button')
-    launchButton.onclick = () => {
-        console.log('Launch game')
-        let launchModal = document.getElementById('launch-modal')
-        launchModal.style.display = 'none'
-        disableControls = false
-    }
 
     let actions = {
         moveUp: {
@@ -226,6 +219,32 @@ window.onload = function() {
     }
     let boat = BoatClass.create(0, 0.5)
 
+    let launchButton = document.getElementById('launch-button')
+    launchButton.onclick = () => {
+        if (disableControls) {
+            console.log('Launch game')
+
+            boat = BoatClass.create(0, 0.5)
+            camera.destinationX = 0
+            camera.x = 0
+            simplex = new SimplexNoise()
+
+            let launchModal = document.getElementById('launch-modal')
+            launchModal.classList.add('hide')
+
+            for (let action of Object.keys(actions))
+                actions[action].active = false
+
+            disableControls = false
+        }
+    }
+
+    let endGame = () => {
+        let launchModal = document.getElementById('launch-modal')
+        launchModal.classList.remove('hide')
+        disableControls = true
+    }
+
     function renderGameObject(gameObject, currentWave) {
         if (!gameObject.drawn && currentWave.closeness > gameObject.closeness*totalWaves) {
             context.save()
@@ -330,8 +349,7 @@ window.onload = function() {
                 boat.vX *= 0.9
                 boat.vY *= 0.9
                 if (isColliding((boat.x - previousX)*10000, (boat.closeness - previousY)*10000, 3.5, 0, true)) {
-                    console.log(boat.x - previousX, boat.closeness - previousY)
-                    disableControls = true
+                    endGame()
                 }
                 boat.vX = boat.vY = 0
             }
