@@ -65,9 +65,12 @@ window.onload = function() {
         return (1 - 1/(dt/divisor + 1))*dist
     }
 
-    function isColliding(xDist, yDist, r1, r2) {
+    function isColliding(xDist, yDist, r1, r2, reverse=false) {
         let r = r1 + r2
-        return xDist*xDist + yDist*yDist < r*r
+        if (!reverse)
+            return xDist*xDist + yDist*yDist < r*r
+        else
+            return xDist*xDist + yDist*yDist > r*r
     }
 
     function distance(xDist, yDist) {
@@ -125,7 +128,7 @@ window.onload = function() {
     let BoatClass = {
         accelRate: 0.2, frictionRate: 0.1, maxSpeed: 0.35,
         x: 0, rotation: -Math.PI/2, closeness: 0,
-        xOffset: 200,
+        xOffset: 220,
         vX: 0, vY: 0,
         sailPosition: 0,
         sailPositionDestination: 0,
@@ -167,7 +170,7 @@ window.onload = function() {
             let xOffsetDestination = 0
             if (disableControls) {
                 rotationDestination = -Math.PI/2
-                xOffsetDestination = 200
+                xOffsetDestination = 220
             }
             this.rotation += asymptote(rotationDestination - this.rotation, 0.8, timeDelta)
             this.xOffset += asymptote(xOffsetDestination - this.xOffset, 0.6, timeDelta)
@@ -320,10 +323,17 @@ window.onload = function() {
             if (isColliding(rock.x - boat.x, rockCloseness - boat.closeness, 0.1, rockRadius)) {
                 let angleFromRock = Math.atan2(boat.closeness - rockCloseness, boat.x - rock.x)
                 let distance = 0.1 + rockRadius
+                let previousX = boat.x
+                let previousY = boat.closeness
                 boat.x = rock.x + Math.cos(angleFromRock)*distance
                 boat.closeness = rockCloseness + Math.sin(angleFromRock)*distance
                 boat.vX *= 0.9
                 boat.vY *= 0.9
+                if (isColliding((boat.x - previousX)*10000, (boat.closeness - previousY)*10000, 3.5, 0, true)) {
+                    console.log(boat.x - previousX, boat.closeness - previousY)
+                    disableControls = true
+                }
+                boat.vX = boat.vY = 0
             }
         }
 
