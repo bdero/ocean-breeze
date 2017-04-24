@@ -287,7 +287,7 @@ window.onload = function() {
             for (let y = 0; y <= 1; y += 0.1) {
                 let rockX = x + cameraRockBaseX
                 let rockNoise = simplex.noise3d(100, rockX*70, y*70)
-                if (rockNoise > 0.6) {
+                if (rockNoise > 0.85 - Math.abs(rockX)/300 && !(rockX > -1 && rockX < 1)) {
                     let rock = {
                         x: rockX + simplex.noise(1344, y*1384)*0.05,
                         closeness: y + simplex.noise(1489, rockX*1482)*0.05,
@@ -300,12 +300,13 @@ window.onload = function() {
             }
         }
 
-        boat.update()
+        if (!disableControls)
+            boat.update()
 
         // Rock collision
         for (let rock of rocks) {
-            let rockRadius = rock.size/1800
-            let rockCloseness = rock.closeness - rock.size/8000
+            let rockRadius = rock.size/2400
+            let rockCloseness = rock.closeness - rock.size/1200
             if (isColliding(rock.x - boat.x, rockCloseness - boat.closeness, 0.1, rockRadius)) {
                 let angleFromRock = Math.atan2(boat.closeness - rockCloseness, boat.x - rock.x)
                 let distance = 0.1 + rockRadius
@@ -376,11 +377,11 @@ window.onload = function() {
         context.translate(element.width - 120, element.height - 110)
 
         context.save()
-        context.font = '40px sans-serif'
-        context.strokeStyle = 'white'
-        context.lineWidth = 6
+        context.font = '30px sans-serif'
+        context.strokeStyle = 'rgba(255, 255, 255, 0.3)'
+        context.lineWidth = 3
+        context.fillStyle = 'rgba(255, 255, 255, 0.8)'
         context.strokeText('breeze', -context.measureText('breeze').width/2, 70)
-        context.fillStyle = 'maroon'
         context.fillText('breeze', -context.measureText('breeze').width/2, 70)
         context.restore()
 
@@ -395,8 +396,26 @@ window.onload = function() {
         context.closePath()
         context.fillStyle = 'brown'
         context.fill()
-        context.strokeStyle = 'white'
+        context.strokeStyle = 'rgba(255, 255, 255, 0.7)'
         context.stroke()
+
+        context.restore()
+
+        // Distance text
+        context.save()
+
+        let distance = (Math.round(boat.x*150)/10).toString()
+        if (distance[distance.length - 2] !== '.') {
+            distance += '.0'
+        }
+
+        context.translate(element.width/2, element.height - 120)
+        context.font = '50px sans-serif'
+        context.strokeStyle = 'rgba(255, 255, 255, 0.3)'
+        context.lineWidth = 3
+        context.fillStyle = 'rgba(255, 255, 255, 0.8)'
+        context.strokeText(distance, 50 - context.measureText(distance).width, 70)
+        context.fillText(distance, 50 - context.measureText(distance).width, 70)
 
         context.restore()
 
