@@ -124,7 +124,8 @@ window.onload = function() {
     // Boat setup
     let BoatClass = {
         accelRate: 0.2, frictionRate: 0.1, maxSpeed: 0.35,
-        x: 0, rotation: 0, closeness: 0,
+        x: 0, rotation: -Math.PI/2, closeness: 0,
+        xOffset: 200,
         vX: 0, vY: 0,
         sailPosition: 0,
         sailPositionDestination: 0,
@@ -162,8 +163,17 @@ window.onload = function() {
             let noiseY = simplex.noise(500, timeElapsed*0.75)*16 + simplex.noise(700, timeElapsed*3)*Math.abs(this.vX)*12
             let noiseRotation = simplex.noise(600, timeElapsed*0.40)/8 + simplex.noise(800, timeElapsed*2.5)*Math.abs(this.vX)/7
 
+            let rotationDestination = 0
+            let xOffsetDestination = 0
+            if (disableControls) {
+                rotationDestination = -Math.PI/2
+                xOffsetDestination = 200
+            }
+            this.rotation += asymptote(rotationDestination - this.rotation, 0.8, timeDelta)
+            this.xOffset += asymptote(xOffsetDestination - this.xOffset, 0.6, timeDelta)
+
             // Initial transform
-            context.translate(noiseX, noiseY)
+            context.translate(noiseX, noiseY + this.xOffset)
             context.scale(0.8, 0.8)
             context.rotate(this.rotation + this.vX/1.5 + wind.x/15 + noiseRotation)
             context.translate(-15, 45)
