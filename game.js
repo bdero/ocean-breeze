@@ -65,6 +65,15 @@ window.onload = function() {
         return (1 - 1/(dt/divisor + 1))*dist
     }
 
+    function isColliding(xDist, yDist, r1, r2) {
+        let r = r1 + r2
+        return xDist*xDist + yDist*yDist < r*r
+    }
+
+    function distance(xDist, yDist) {
+        return Math.sqrt(xDist*xDist + yDist*yDist)
+    }
+
     let simplex = new SimplexNoise()
 
     let arrowPoints = [
@@ -134,7 +143,7 @@ window.onload = function() {
             else
                 this.sailPositionDestination = 0
             this.sailPosition += asymptote(this.sailPositionDestination - this.sailPosition, 1, timeDelta)
-            this.vX += (this.sailPosition*wind.x/20 + wind.x/60)*timeDelta
+            this.vX += (this.sailPosition*wind.x/10 + wind.x/60)*timeDelta
             if (actions.moveUp.active)
                 this.vY = Math.max(-this.maxSpeed, this.vY - this.accelRate*timeDelta)
             if (actions.moveDown.active)
@@ -262,6 +271,7 @@ window.onload = function() {
         timeElapsed = (Date.now() - initialTime)/1000
         timeDelta = timeElapsed - prevTimeElapsed
 
+        // Compute wind
         wind.x = Math.sin(
             Math.min(1, Math.max(-1,
                 simplex.noise(900, timeElapsed/12)
@@ -269,26 +279,6 @@ window.onload = function() {
             ))*Math.PI/2
         ) + simplex.noise(1200, timeElapsed*2)/7
         wind.x = Math.min(1, Math.abs(wind.x))*Math.sign(wind.x)
-
-        boat.update()
-
-        context.save()
-
-        // Camera calculations
-        camera.destinationZoom = 1.4 - Math.abs(boat.vX)*0.8
-        camera.zoom += asymptote(camera.destinationZoom - camera.zoom, 30, timeElapsed)
-        context.scale(camera.zoom, camera.zoom)
-
-        camera.historyCursor = (camera.historyCursor + 1)%camera.destinationXHistory.length
-        camera.destinationXHistory[camera.historyCursor] = boat.x + boat.vX*1.3
-        camera.destinationX = camera.destinationXHistory.reduce((x, y) => x + y)/camera.destinationXHistory.length
-        camera.x += asymptote(camera.destinationX - camera.x, 0.8, timeDelta)
-        camera.y = boat.closeness - 0.3
-
-        context.translate(
-            mX/camera.zoom - element.width*(camera.x + simplex.noise(100, timeElapsed/5)/100),
-            mY/camera.zoom - element.height*(camera.y/5 + simplex.noise(200, timeElapsed/5)/100 + camera.zoom/7 - 0.1)
-        )
 
         // Compute rocks
         let cameraRockBaseX = Math.round(camera.x*10)/10
@@ -309,6 +299,40 @@ window.onload = function() {
                 }
             }
         }
+
+        boat.update()
+
+        // Rock collision
+        for (let rock of rocks) {
+            let rockRadius = rock.size/1800
+            let rockCloseness = rock.closeness - rock.size/8000
+            if (isColliding(rock.x - boat.x, rockCloseness - boat.closeness, 0.1, rockRadius)) {
+                let angleFromRock = Math.atan2(boat.closeness - rockCloseness, boat.x - rock.x)
+                let distance = 0.1 + rockRadius
+                boat.x = rock.x + Math.cos(angleFromRock)*distance
+                boat.closeness = rockCloseness + Math.sin(angleFromRock)*distance
+                boat.vX *= 0.9
+                boat.vY *= 0.9
+            }
+        }
+
+        context.save()
+
+        // Camera calculations
+        camera.destinationZoom = 1.4 - Math.abs(boat.vX)*0.8
+        camera.zoom += asymptote(camera.destinationZoom - camera.zoom, 30, timeElapsed)
+        context.scale(camera.zoom, camera.zoom)
+
+        camera.historyCursor = (camera.historyCursor + 1)%camera.destinationXHistory.length
+        camera.destinationXHistory[camera.historyCursor] = boat.x + boat.vX*1.3
+        camera.destinationX = camera.destinationXHistory.reduce((x, y) => x + y)/camera.destinationXHistory.length
+        camera.x += asymptote(camera.destinationX - camera.x, 0.8, timeDelta)
+        camera.y = boat.closeness - 0.3
+
+        context.translate(
+            mX/camera.zoom - element.width*(camera.x + simplex.noise(100, timeElapsed/5)/100),
+            mY/camera.zoom - element.height*(camera.y/5 + simplex.noise(200, timeElapsed/5)/100 + camera.zoom/7 - 0.1)
+        )
 
         // Render scene
         boat.drawn = false
